@@ -2,6 +2,13 @@ import aiohttp
 import asyncio
 import urllib
 
+class ScryfallError(Exception):
+    def __init__(self, error_obj, *args, **kwargs):
+        super(self.__class__, self).__init__(*args, **kwargs)
+        self.error_details = {}
+        self.error_details.update(error_obj)
+
+
 class FoundationObject(object):
 
     def __init__(self, _url, override=False, **kwargs):
@@ -28,9 +35,9 @@ class FoundationObject(object):
         loop.run_until_complete(main(loop))
 
         if self.scryfallJson['object'] == 'error':
-            raise Exception(self.scryfallJson['details'])
+            raise ScryfallError(self.scryfallJson, self.scryfallJson['details'])
 
-    def _checkForKey(self, key):
+    def _checkForKey(self, key, nested_key=None):
         """Checks for a key in the scryfallJson object.
         This function should be considered private, and
         should not be accessed in production.
@@ -43,6 +50,11 @@ class FoundationObject(object):
         """
         if not key in self.scryfallJson:
             raise KeyError('This card has no key \'{}\''.format(key))
+
+        if nested_key:
+            if not nested_key in self.scryfallJson[key]:
+                raise KeyError('This card has no key \'{}.{}\''.format(key, nested_key))
+
 
     def _checkForTupleKey(self, parent, num, key):
         """Checks for a key of an object in an array.
