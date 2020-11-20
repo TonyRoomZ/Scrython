@@ -27,12 +27,12 @@ class FoundationObject(object):
             async with client.get(url, **kwargs) as response:
                 return await response.json()
 
-        async def main(loop):
-            async with aiohttp.ClientSession(loop=loop) as client:
+        async def main():
+            async with aiohttp.ClientSession() as client:
                 self.scryfallJson = await getRequest(client, self._url)
 
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(main(loop))
+        asyncio.set_event_loop(asyncio.SelectorEventLoop())
+        asyncio.get_event_loop().run_until_complete(main())
 
         if self.scryfallJson['object'] == 'error':
             raise ScryfallError(self.scryfallJson, self.scryfallJson['details'])
